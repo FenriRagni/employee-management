@@ -3,7 +3,7 @@ const mysql = require('mysql2');
 
 const db = mysql.createConnection(
     {
-        host: 'localhost',
+        host: '127.0.0.1',
         user: 'root',
         password: 'password',
         database: 'employee_db'
@@ -11,11 +11,10 @@ const db = mysql.createConnection(
     console.log(`Connected to the employee_db database.`)
 )
 
-db.query(`SELECT *`, function (err, results){
-    if(results){
-        console.log(results);
-    }
-    else{
-        console.log("no response returned");
-    }
-})
+db.query(`INSERT INTO department(name) VALUES ("Grocery");`, function(err, results){
+    console.log(results);
+});
+db.query(`SELECT * FROM department;`, function (err, results){
+    console.log(results);
+});
+
