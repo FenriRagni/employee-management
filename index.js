@@ -26,8 +26,24 @@ function init(){
         }])
         .then((results) => {
             switch(results.choice){
-                case 'view all departments': console.log(displayDepartment(db).toString());
-                    init();
+                case 'view all departments': 
+                db.query("SELECT department_name FROM department", function (err, res) {
+                    console.log(res);
+                    if(!err){
+                        let table = new Table({
+                            head: ["Departments"],
+                            colWidths: [20]
+                        });
+                        for(let i = 0; i < res.length; i++){
+                            table.push([res[i].department_name]);
+                        }
+                        console.log(table.toString());
+                        init();
+                    }
+                    else{
+                        return err;
+                    }
+                });
                 break;
                 case 'view all roles':
                 break;
