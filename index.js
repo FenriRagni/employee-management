@@ -54,7 +54,6 @@ function init(){
                         for(let i = 0; i < res.length; i++){
                             table.push([res[i].id, res[i].title, res[i].salary, res[i].department_id]);
                         }
-                        console.log(table);
                         console.log(table.toString());
                         init();
                     }
@@ -66,14 +65,16 @@ function init(){
                 break;
                 case 'view all employees':
                     let table = new Table({
-                        head: ["employee_id", "first_name", "last_name", "role", "department", "salary", "manager"],
-                        colWidths: [10, 10, 10, 10, 10, 10, 10]
-                    });
-                    db.query('SELECT a.id, a.first_name, a.last_name, role.title, department.department_name, role.salary, CONCAT_WS(" ", b.first_name, b.last_name) AS supervisor FROM employee a INNER JOIN role ON a.role_id = role.id INNER JOIN department ON role.department_id = department.id LEFT JOIN employee b ON a.manager_id = b.id" = role.id', function (err, res) {
+                        head: ["Employee ID", "First Name", "Last Name", "Role", "Department", "Salary", "Manager"],
+                        colWidths: [15, 15, 15, 15, 15, 15, 15]
+                     });
+                    db.query('SELECT a.id, a.first_name, a.last_name, role.title, department.department_name, role.salary, IFNULL(CONCAT(b.first_name," ", b.last_name),"null") AS supervisor FROM employee a INNER JOIN role ON a.role_id = role.id INNER JOIN department ON role.department_id = department.id LEFT JOIN employee b ON a.manager_id = b.id', function (err, res) {
                         if(res){
                             for(let i = 0; i < res.length; i++){
                                 table.push([res[i].id, res[i].first_name, res[i].last_name, res[i].title, res[i].department_name, res[i].salary, res[i].supervisor]);
                             }
+                            console.log(table.toString());
+                            init();
                         }
                         else{
                             console.log("No employees found");
