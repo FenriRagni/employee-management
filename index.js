@@ -50,10 +50,9 @@ init();
 function displayDepartment() {
     db.query("SELECT * FROM department ORDER BY id", function (err, res) {
         if(res){
-            console.log(res);
             let table = new Table({
                 head: ["Departments","Dept_id"],
-                colWidths: [10, 20]
+                colWidths: [20, 10]
             });
             for(let i = 0; i < res.length; i++){
                 table.push([res[i].department_name, res[i].id]);
@@ -128,7 +127,6 @@ function addDepartment(){
 function addRole() {
     db.query("SELECT * FROM department", function (err, res){
         let dept = [];
-        console.log(res);
         for(let x = 0; x < res.length; x++){
             dept.push(res[x].department_name);
         }
@@ -175,7 +173,6 @@ function addEmployee(){
                 ]
             )
             .then((results) => {
-                console.log(results.manager);
                 if(results.manager === "null"){
                     db.query('INSERT INTO employee(first_name, last_name, role_id) VALUES (?, ? , ?)',
                          [results.first, results.last, parseInt(res[dept.indexOf(results.role)].id)] , function(err, res3){
@@ -211,7 +208,7 @@ function addEmployee(){
 function updateEmployee() {
     let roles = [];
     let employees = [];
-    db.query("SELECT id, title FROM role", function(err, res){
+    db.query('SELECT role.id, CONCAT(department.department_name, " ", role.title) AS title FROM role INNER JOIN department ON role.department_id = department.id', function(err, res){
         for(let x = 0; x < res.length; x++){
             roles.push(res[x].title);
         }
@@ -229,7 +226,7 @@ function updateEmployee() {
                 db.query('UPDATE employee SET role_id = ? WHERE id = ?', 
                 [res[roles.indexOf(results.role)].id, res2[employees.indexOf(results.name)].id], function(err, res3){
                     if(res3){
-                        console.log(`Updated ${res2.name}'s role`);
+                        console.log(`Updated ${results.name}'s role`);
                         return init();
                     }
                 })
