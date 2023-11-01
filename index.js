@@ -37,7 +37,7 @@ function init(){
                 break;
                 case 'add an employee': addEmployee();
                 break;
-                case 'update employee role':
+                case 'update employee role': updateEmployee();
                 break;
                 case'quit': process.exit();
             }
@@ -128,6 +128,7 @@ function addDepartment(){
 function addRole() {
     db.query("SELECT * FROM department", function (err, res){
         let dept = [];
+        console.log(res);
         for(let x = 0; x < res.length; x++){
             dept.push(res[x].department_name);
         }
@@ -139,10 +140,10 @@ function addRole() {
             ])
         .then((results) => {
             db.query('INSERT INTO role(title, salary, department_id) VALUES (? , ? , ?)', 
-            [results.title, parseFloat(results.salary), parseInt(res[dept.indexOf(results.department_id)+1].id)], function (err, res){
+            [results.title, parseFloat(results.salary), parseInt(res[dept.indexOf(results.department_id)].id)], function (err, res){
                 if(res){
                     console.log(`Added ${results.title} role to database`)
-                    return displayRole();  
+                    return init();  
                 }
                 else{
                     console.log("Unable to add role");
@@ -155,31 +156,68 @@ function addRole() {
 }
 
 function addEmployee(){
-    inquirer.prompt(
-        [
-            {name: "first", message: "Employee's first name: "},
-            {name: "last", message: "Employee's last name: "},
-            {name: "role", message: "Employee's role id: "},
-            {name: "manager", message: "Employee's manager's id: "}
-        ]
-    )
-    .then((results) => {
-        db.query('INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES (?, ? , ?, ?)',
-        [results.first, results.last, parseInt(results.role), parseInt(results.manager)], function(err, res){
-            if(res){
-                return displayEmployees();
+    let dept =[];
+    let employees = ['null'];
+    db.query("SELECT id, title FROM role", function(err, res){
+        for(let x = 0; x < res.length; x++){
+            dept.push(res[x].title);
+        }
+        db.query('SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee', function(err,res2){
+            for(let x = 0; x < res2.length; x++){
+                employees.push(res2[x].name);
             }
-            else{
-                console.log("Unable to add employee");
-                return init();
-            }
+            inquirer.prompt(
+                [
+                    {name: "first", message: "Employee's first name: "},
+                    {name: "last", message: "Employee's last name: "},
+                    {type: "list", name: "role", message: "What is the employee's role?", choices: dept},
+                    {type: "list", name: "manager", message: "Who is the employee's Manager?", choices: employees}
+                ]
+            )
+            .then((results) => {
+                db.query('INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES (?, ? , ?, ?)',
+                [results.first, results.last, parseInt(res[dept.indexOf(results.role)].id), parseInt(res2[employees.indexOf(results.manager)-1].id)], function(err, res3){
+                    if(res3){
+                        console.log(`Added ${results.first} ${results.last} to the database`);
+                        return init();
+                    }
+                    else{
+                        console.log("Unable to add employee");
+                        return init();
+                    }
+                })
+            })
         })
     })
+    
 }
 
 function updateEmployee() {
-    inquirer.prompt(
-        [
-            {name: "id", message: ""}
-        ])
+    let roles = [];
+    let employees = [];
+    db.query("SELECT id, title FROM role", function(err, res){
+        for(let x = 0; x < res.length; x++){
+            roles.push(res[x].title);
+        }
+        db.query('SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee', function(err,res2){
+            for(let x = 0; x < res2.length; x++){
+                employees.push(res2[x].name);
+            }
+            inquirer.prompt(
+                [
+                    {type: "list", name: "name", message: "Which employee's role do you want to update?", choices: employees},
+                    {type: "list", name: "role", message: "What role would you like to assign?", choices: roles}
+                ]
+            )
+            .then((results) => {
+                db.query('UPDATE employee SET role_id = ? WHERE id = ?', 
+                [res[roles.indexOf(results.role)].id, res2[employees.indexOf(results.name)].id], function(err, res3){
+                    if(res3){
+                        console.log(`Updated ${res2.name}'s role`);
+                        return init();
+                    }
+                })
+            })
+        })
+    })
 }
