@@ -72,11 +72,11 @@ function displayRole() {
     db.query("SELECT role.title, role.id, role.salary, department.department_name FROM employee_db.role INNER JOIN department ON role.department_id = department.id ORDER BY id", function (err, res) {
         if(res){
             let table = new Table({
-                head: ["Title", "Role_id", "Salary", "Department"],
+                head: ["Title", "Role_id", "Department", "Salary"],
                 colWidths: [20, 10, 20, 20]
             });
             for(let i = 0; i < res.length; i++){
-                table.push([res[i].title, res[i].id, res[i].salary, res[i].department_name]);
+                table.push([res[i].title, res[i].id, res[i].department_name, res[i].salary]);
             }
             console.log("\n" + table.toString());
             return init();
@@ -92,7 +92,7 @@ function displayEmployees() {
     db.query('SELECT a.id, a.first_name, a.last_name, role.title, department.department_name, role.salary, IFNULL(CONCAT(b.first_name," ", b.last_name),"null") AS manager FROM employee a INNER JOIN role ON a.role_id = role.id INNER JOIN department ON role.department_id = department.id LEFT JOIN employee b ON a.manager_id = b.id', function (err, res) {
         if(res){
             let table = new Table({
-                head: ["Employee ID", "First Name", "Last Name", "Role", "Department", "Salary", "Manager"],
+                head: ["Employee ID", "First Name", "Last Name", "Titles", "Department", "Salary", "Manager"],
                 colWidths: [15, 15, 15, 15, 15, 15, 15]
             });
             for(let i = 0; i < res.length; i++){
