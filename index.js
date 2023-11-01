@@ -89,14 +89,14 @@ function displayRole() {
 }
 
 function displayEmployees() {
-    db.query('SELECT a.id, a.first_name, a.last_name, role.title, department.department_name, role.salary, IFNULL(CONCAT(b.first_name," ", b.last_name),"null") AS supervisor FROM employee a INNER JOIN role ON a.role_id = role.id INNER JOIN department ON role.department_id = department.id LEFT JOIN employee b ON a.manager_id = b.id', function (err, res) {
+    db.query('SELECT a.id, a.first_name, a.last_name, role.title, department.department_name, role.salary, IFNULL(CONCAT(b.first_name," ", b.last_name),"null") AS manager FROM employee a INNER JOIN role ON a.role_id = role.id INNER JOIN department ON role.department_id = department.id LEFT JOIN employee b ON a.manager_id = b.id', function (err, res) {
         if(res){
             let table = new Table({
                 head: ["Employee ID", "First Name", "Last Name", "Role", "Department", "Salary", "Manager"],
                 colWidths: [15, 15, 15, 15, 15, 15, 15]
             });
             for(let i = 0; i < res.length; i++){
-                table.push([res[i].id, res[i].first_name, res[i].last_name, res[i].title, res[i].department_name, res[i].salary, res[i].supervisor]);
+                table.push([res[i].id, res[i].first_name, res[i].last_name, res[i].title, res[i].department_name, res[i].salary, res[i].manager]);
             }
             console.log("\n" + table.toString());
             return init();
@@ -158,7 +158,7 @@ function addRole() {
 function addEmployee(){
     let dept =[];
     let employees = ['null'];
-    db.query("SELECT id, title FROM role", function(err, res){
+    db.query('SELECT role.id, CONCAT(department.department_name, " ", role.title) AS title FROM role INNER JOIN department ON role.department_id = department.id', function(err, res){
         for(let x = 0; x < res.length; x++){
             dept.push(res[x].title);
         }
@@ -175,8 +175,10 @@ function addEmployee(){
                 ]
             )
             .then((results) => {
-                db.query('INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES (?, ? , ?, ?)',
-                [results.first, results.last, parseInt(res[dept.indexOf(results.role)].id), parseInt(res2[employees.indexOf(results.manager)-1].id)], function(err, res3){
+                console.log(results.manager);
+                if(results.manager === "null"){
+                    db.query('INSERT INTO employee(first_name, last_name, role_id) VALUES (?, ? , ?)',
+                         [results.first, results.last, parseInt(res[dept.indexOf(results.role)].id)] , function(err, res3){
                     if(res3){
                         console.log(`Added ${results.first} ${results.last} to the database`);
                         return init();
@@ -186,6 +188,20 @@ function addEmployee(){
                         return init();
                     }
                 })
+                }
+                else{
+                    db.query('INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES (?, ? , ?, ?)',
+                         [results.first, results.last, parseInt(res[dept.indexOf(results.role)].id), parseInt(res2[employees.indexOf(results.manager)-1].id)] , function(err, res3){
+                    if(res3){
+                        console.log(`Added ${results.first} ${results.last} to the database`);
+                        return init();
+                    }
+                    else{
+                        console.log("Unable to add employee");
+                        return init();
+                    }
+                    })
+                }
             })
         })
     })
