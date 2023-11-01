@@ -48,15 +48,15 @@ function init(){
 init();
 
 function displayDepartment() {
-    db.query("SELECT * FROM department", function (err, res) {
+    db.query("SELECT * FROM department ORDER BY id", function (err, res) {
         if(res){
             console.log(res);
             let table = new Table({
-                head: ["Dept_id","Departments"],
+                head: ["Departments","Dept_id"],
                 colWidths: [10, 20]
             });
             for(let i = 0; i < res.length; i++){
-                table.push([res[i].id, res[i].department_name]);
+                table.push([res[i].department_name, res[i].id]);
             }
             console.log("\n" + table.toString());
             return init();
@@ -69,14 +69,14 @@ function displayDepartment() {
 }
 
 function displayRole() {
-    db.query("SELECT * FROM role", function (err, res) {
+    db.query("SELECT role.title, role.id, role.salary, department.department_name FROM employee_db.role INNER JOIN department ON role.department_id = department.id ORDER BY id", function (err, res) {
         if(res){
             let table = new Table({
-                head: ["Role_id", "Title", "Salary", "Dept_id"],
-                colWidths: [10, 20, 10, 10]
+                head: ["Title", "Role_id", "Salary", "Department"],
+                colWidths: [20, 10, 20, 20]
             });
             for(let i = 0; i < res.length; i++){
-                table.push([res[i].id, res[i].title, res[i].salary, res[i].department_id]);
+                table.push([res[i].title, res[i].id, res[i].salary, res[i].department_name]);
             }
             console.log("\n" + table.toString());
             return init();
